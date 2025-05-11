@@ -15,11 +15,11 @@ export const TodoTemplate = () => {
     const [
         {
             showTodoList,
-            originalText,
+            addInputValue,
             searchText
         },
         {
-            handleSetOriginalText,
+            handleSetAddInputValue,
             createTodo,
             handleSetSearchText,
             handleTodoDelete
@@ -30,8 +30,8 @@ export const TodoTemplate = () => {
         <div>
             {/* todoListの追加 */}
             <AddTodo
-                inputValue={originalText}
-                onChangeText={handleSetOriginalText}
+                inputValue={addInputValue}
+                onChangeText={handleSetAddInputValue}
                 handleKeyUp={createTodo}
             />
             {/* todoListの検索 */}

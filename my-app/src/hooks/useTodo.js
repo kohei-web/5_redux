@@ -7,7 +7,8 @@
 
 
 import { useState, useMemo } from "react";
-import { initialTodoList, todoLength } from "../constants/data";
+import { useDispatch, useSelector } from "react-redux";
+import { addTodo, deleteTodo } from "../stores/todo.js";
 
 /**
  * useTodo
@@ -18,46 +19,32 @@ import { initialTodoList, todoLength } from "../constants/data";
 
 
 export const useTodo = () => {
-    // 表示todoListの状態管理
-    const [ todos, setTodos ] = useState(initialTodoList);
+    // dispatchの定義
+    const disPatch = useDispatch();
+    // useSelectorでinitialStateをstateとして使用する
+    const todoList = useSelector((state) => state.todo.todos);
+
     // todo追加テキストの状態管理 最初は空文字
-    const [ originalText, setOriginalText ] = useState("");
-    // idの状態管理
-    const [ todoIdLength, setTodoIdLength ] = useState(todoLength);
+    const [ addInputValue, setAddInputValue ] = useState("");
     // 検索テキストの状態管理
     const [ searchText, setSearchText ] = useState("");
 
-    // todoList追加処理
-    const addTodo = (todo) => {
-        setTodos([...todos, todo]);
-    };
 
     // 新しいtodoListの作成
     const createTodo = (e) => {
         // Enterがクリックかつ入力欄がからではない時にtodoを追加するようにする
-        if (e.key === 'Enter' && originalText !== "") {
-            // 現在のidに+1してインクリメントになるようにidを作成
-            const originalId = todoIdLength + 1;
-
-            // 追加するtodoの作成
-            const todo = {
-                id: originalId,
-                title: originalText
-            };
+        if (e.key === 'Enter' && addInputValue !== "") {
 
             // todoの追加
-            addTodo(todo);
-
-            // idの管理
-            setTodoIdLength(originalId);
+            disPatch(addTodo(addInputValue));
 
             // todo追加後に入力欄を空にする
-            setOriginalText("");
+            setAddInputValue("");
         }
     };
 
     // 入力されたtodo追加テキストの状態管理ハンドラ
-    const handleSetOriginalText = (e) => setOriginalText(e.target.value);
+    const handleSetAddInputValue = (e) => setAddInputValue(e.target.value);
     // 入力された検索テキストの状態管理ハンドラ
     const handleSetSearchText = (e) => setSearchText(e.target.value);
 
@@ -65,38 +52,31 @@ export const useTodo = () => {
     // フィルタリング後のtodoを返す
     // useMemoで同じ処理はスキップするようにする
     const showTodoList = useMemo(() => {
-        return todos.filter((todo) => {
+        return todoList.filter((todo) => {
             // フィルタリング用の設定を作成
             const regexp = new RegExp("^" + searchText, "i");
             // todoのtitleがフィルタリングと合致したtodoのみ返す
             return todo.title.match(regexp);
         });
-    }, [todos, searchText]);
+    }, [todoList, searchText]);
 
     // todoList削除処理
     const handleTodoDelete = (targetId) => {
-        // 渡ってきたidの合致しないtodoListを作成
-        const newTodos = todos.filter((todo => todo.id !== targetId));
-
-        // 作成した新しいTodoListをtodoListを管理する状態関数に渡す
-        setTodos(newTodos);
+        disPatch(deleteTodo(targetId));
     };
 
-    // 状態管理を辞書型に定義
     const states = {
         showTodoList,
-        originalText,
+        addInputValue,
         searchText,
-    };
+    }
 
-    // イベントハンドラを辞書型に定義
     const actions = {
-        handleSetOriginalText,
+        handleSetAddInputValue,
         createTodo,
         handleSetSearchText,
         handleTodoDelete,
-    };
+    }
 
-    return [ states, actions ]
-
-}
+    return [states, actions];
+};
